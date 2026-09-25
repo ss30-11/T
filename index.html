@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ACTION PLAN</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0a0a; --panel:#141414; --line:#2a2a2a;
+  --text:#e8e8e8; --sub:#7a7a7a; --accent:#00ff88;
+  --done:#333; --donetext:#666;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;}
+html{scroll-padding-top:env(safe-area-inset-top,0px);}
+html,body{margin:0;height:100%;background:var(--bg);}
+body{
+  font-family:'Space Mono','Noto Sans JP',monospace;
+  color:var(--text);
+  padding:20px 14px 40px;
+  max-width:480px;
+  margin:0 auto;
+  -webkit-tap-highlight-color:transparent;
+}
+h1{
+  font-size:13px; letter-spacing:.2em; color:var(--sub);
+  text-align:center; margin:4px 0 18px; font-weight:700;
+}
+.rules{
+  display:flex; gap:8px; justify-content:center; margin-bottom:22px;
+}
+.rule{
+  border:1px solid var(--line); border-radius:4px;
+  padding:8px 4px; flex:1; text-align:center;
+  font-size:12px; font-weight:700; color:var(--accent);
+  background:var(--panel);
+}
+.flow{ position:relative; padding-left:22px; }
+.flow::before{
+  content:''; position:absolute; left:9px; top:6px; bottom:6px;
+  width:1px; background:var(--line);
+}
+.step{
+  position:relative; margin-bottom:10px;
+  border:1px solid var(--line); border-radius:6px;
+  background:var(--panel); padding:12px 14px;
+  cursor:pointer; transition:background .15s;
+}
+.step::before{
+  content:attr(data-n); position:absolute; left:-22px; top:14px;
+  width:18px; height:18px; border-radius:50%;
+  background:var(--bg); border:1px solid var(--line);
+  font-size:9px; display:flex; align-items:center; justify-content:center;
+  color:var(--sub);
+}
+.step.done::before{ border-color:var(--accent); color:var(--accent); }
+.step.done{ opacity:.5; }
+.row{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.label{ font-size:15px; font-weight:700; letter-spacing:.02em; }
+.step.done .label{ text-decoration:line-through; color:var(--donetext); }
+.chk{
+  width:16px; height:16px; border:1px solid var(--line); border-radius:3px;
+  flex-shrink:0;
+}
+.step.done .chk{ background:var(--accent); border-color:var(--accent); }
+.psy{
+  margin-top:8px; padding-top:8px; border-top:1px dashed var(--line);
+  font-size:11px; color:var(--sub); line-height:1.6; display:none;
+}
+.step.open .psy{ display:block; }
+.psy b{ color:var(--accent); font-weight:700; }
+.orig{
+  margin-top:4px; font-size:10px; color:#555;
+}
+footer{
+  margin-top:24px; text-align:center; font-size:10px; color:var(--sub);
+  letter-spacing:.1em;
+}
+#reset{
+  display:block; margin:18px auto 0; background:none; border:1px solid var(--line);
+  color:var(--sub); font-family:inherit; font-size:11px; padding:8px 16px;
+  border-radius:4px;
+}
+</style>
+</head>
+<body>
+<h1>ACTION PLAN // 実行手順</h1>
+
+<div class="rules" id="rules"></div>
+
+<div class="flow" id="flow"></div>
+
+<button id="reset">リセット</button>
+<footer>TAP STEP → 心理解説表示 / チェック → 完了記録</footer>
+
+<script>
+const RULES = ["量産","検証","希少"];
+
+const STEPS = [
+  {label:"キャラ設計", orig:"①キャラクター設計", psy:"一貫した人格は認知負荷を下げ、記憶定着率を上げる。"},
+  {label:"画像環境構築", orig:"②AI画像生成環境を作る", psy:"生成コスト低下が投稿頻度を最大化し、露出機会を増加させる。"},
+  {label:"X開設", orig:"③Xアカウント開設", psy:"プラットフォーム選択が初期母集団の質を規定する。"},
+  {label:"投稿で定着", orig:"④30〜50投稿でキャラを定着", psy:"反復露出は単純接触効果により好感度を上昇させる。"},
+  {label:"パターン分析", orig:"⑤伸びる投稿パターンを分析", psy:"フィードバック速度が最適化速度を決定する。"},
+  {label:"フォロワー増", orig:"⑥フォロワー1,000〜5,000", psy:"社会的証明が新規流入の意思決定コストを下げる。"},
+  {label:"有料開設", orig:"⑦有料プラットフォーム開設", psy:"収益化装置の設置が行動の目的化を明確にする。"},
+  {label:"導線構築", orig:"⑧無料→有料の導線構築", psy:"選択のハードルを下げるほど転換率は上昇する。"},
+  {label:"月額開始", orig:"⑨月額コンテンツ開始", psy:"継続課金は関係の予測可能性を高め離脱率を下げる。"},
+  {label:"限定追加", orig:"⑩写真集・限定作品などを追加", psy:"希少性はドーパミン報酬を強化し購買意欲を増幅する。"},
+  {label:"ブランド化", orig:"⑪「寂しい時間を少し楽しくする」ブランドへ", psy:"感情価値の提供が価格弾力性を下げ持続性を生む。"},
+];
+
+const KEY = "action-plan-progress-v1";
+let done = {};
+try{ done = JSON.parse(localStorage.getItem(KEY) || "{}"); }catch(e){ done = {}; }
+
+function save(){
+  try{ localStorage.setItem(KEY, JSON.stringify(done)); }catch(e){}
+}
+
+function renderRules(){
+  const el = document.getElementById('rules');
+  el.innerHTML = RULES.map(r => `<div class="rule">${r}</div>`).join('');
+}
+
+function renderFlow(){
+  const el = document.getElementById('flow');
+  el.innerHTML = STEPS.map((s,i)=>{
+    const isDone = !!done[i];
+    return `
+    <div class="step${isDone?' done':''}" data-i="${i}" data-n="${i+1}">
+      <div class="row">
+        <div>
+          <div class="label">${s.label}</div>
+          <div class="orig">${s.orig}</div>
+        </div>
+        <div class="chk" data-chk="${i}"></div>
+      </div>
+      <div class="psy"><b>心理:</b> ${s.psy}</div>
+    </div>`;
+  }).join('');
+
+  el.querySelectorAll('.step').forEach(node=>{
+    node.addEventListener('click', (e)=>{
+      if(e.target.dataset.chk !== undefined){
+        const i = e.target.dataset.chk;
+        done[i] = !done[i];
+        save();
+        renderFlow();
+        return;
+      }
+      node.classList.toggle('open');
+    });
+  });
+}
+
+document.getElementById('reset').addEventListener('click', ()=>{
+  done = {};
+  save();
+  renderFlow();
+});
+
+renderRules();
+renderFlow();
+</script>
+</body>
+</html>
